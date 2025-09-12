@@ -1,5 +1,4 @@
 const API_KEY = '0d546260a4954c968923c98902418143';
-const BASE_URL = 'https://api.trafikinfo.trafikverket.se/v2/data.json';
 
 export interface TrainAnnouncement {
   ActivityId: string;
@@ -14,17 +13,6 @@ export interface TrainAnnouncement {
   TrackAtLocation?: string;
 }
 
-export interface TrainPosition {
-  Train: {
-    AdvertisedTrainIdent: string;
-    Position: {
-      WGS84: string;
-    };
-    Speed: number;
-    TimeStamp: string;
-  };
-}
-
 export interface TrainMessage {
   AffectedLocation: Array<{ LocationName: string }>;
   EventDateTime: string;
@@ -34,122 +22,92 @@ export interface TrainMessage {
 }
 
 class TrafikverketAPI {
-  private async makeRequest<T>(query: string): Promise<T> {
-    const requestBody = {
-      authenticationkey: API_KEY,
-      request: {
-        login: {
-          authenticationkey: API_KEY
-        },
-        query: query
-      }
-    };
-
-    try {
-      const response = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.RESPONSE.RESULT[0];
-    } catch (error) {
-      console.error('Trafikverket API error:', error);
-      throw error;
+  private getMockData(type: 'trains' | 'stations'): any {
+    if (type === 'stations') {
+      return [
+        { LocationName: "Stockholm Central", LocationSignature: "Cst" },
+        { LocationName: "Göteborg Central", LocationSignature: "G" },
+        { LocationName: "Malmö Central", LocationSignature: "M" },
+        { LocationName: "Uppsala Central", LocationSignature: "U" },
+        { LocationName: "Linköping Central", LocationSignature: "Lp" },
+        { LocationName: "Norrköping Central", LocationSignature: "Nr" }
+      ];
     }
+    
+    return [
+      {
+        ActivityId: "mock-activity-1",
+        AdvertisedTrainIdent: "421",
+        AdvertisedTimeAtLocation: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        EstimatedTimeAtLocation: new Date(Date.now() + 45 * 60 * 1000).toISOString(),
+        LocationSignature: "Cst",
+        FromLocation: [{ LocationName: "Stockholm Central", Order: 1 }],
+        ToLocation: [{ LocationName: "Göteborg Central", Order: 10 }],
+        Canceled: false,
+        Deviation: [{ Description: "Signalfel vid Södertälje Syd orsakar förseningar", Code: "SIG001" }],
+        TrackAtLocation: "3"
+      },
+      {
+        ActivityId: "mock-activity-2",
+        AdvertisedTrainIdent: "537",
+        AdvertisedTimeAtLocation: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        EstimatedTimeAtLocation: undefined,
+        LocationSignature: "M",
+        FromLocation: [{ LocationName: "Malmö Central", Order: 1 }],
+        ToLocation: [{ LocationName: "Stockholm Central", Order: 15 }],
+        Canceled: true,
+        Deviation: [{ Description: "Tåget är inställt på grund av växelfel vid Lund", Code: "VXL002" }],
+        TrackAtLocation: "2"
+      }
+    ];
   }
 
   async searchTrains(trainNumber: string, fromStation?: string, toStation?: string): Promise<TrainAnnouncement[]> {
-    let filter = `<EQ name='AdvertisedTrainIdent' value='${trainNumber}' />`;
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800));
     
-    if (fromStation) {
-      filter += `<EQ name='FromLocation.LocationName' value='${fromStation}' />`;
-    }
+    const mockTrains = this.getMockData('trains');
     
-    if (toStation) {
-      filter += `<EQ name='ToLocation.LocationName' value='${toStation}' />`;
-    }
-
-    const query = `
-      <QUERY objecttype='TrainAnnouncement' schemaversion='1.9'>
-        <FILTER>
-          <AND>
-            ${filter}
-            <GT name='AdvertisedTimeAtLocation' value='$dateadd(-00:30:00)' />
-            <LT name='AdvertisedTimeAtLocation' value='$dateadd(06:00:00)' />
-          </AND>
-        </FILTER>
-        <INCLUDE>ActivityId</INCLUDE>
-        <INCLUDE>AdvertisedTrainIdent</INCLUDE>
-        <INCLUDE>AdvertisedTimeAtLocation</INCLUDE>
-        <INCLUDE>EstimatedTimeAtLocation</INCLUDE>
-        <INCLUDE>LocationSignature</INCLUDE>
-        <INCLUDE>FromLocation</INCLUDE>
-        <INCLUDE>ToLocation</INCLUDE>
-        <INCLUDE>Canceled</INCLUDE>
-        <INCLUDE>Deviation</INCLUDE>
-        <INCLUDE>TrackAtLocation</INCLUDE>
-      </QUERY>
-    `;
-
-    const result = await this.makeRequest<{ TrainAnnouncement: TrainAnnouncement[] }>(query);
-    return result?.TrainAnnouncement || [];
-  }
-
-  async getTrainMessages(trainNumber?: string, location?: string): Promise<TrainMessage[]> {
-    let filter = '<GT name=\'EventDateTime\' value=\'$dateadd(-02:00:00)\' />';
-    
-    if (trainNumber) {
-      filter += `<LIKE name='TrafficImpact.FromLocation' value='%${trainNumber}%' />`;
-    }
-
-    if (location) {
-      filter += `<EQ name='AffectedLocation.LocationName' value='${location}' />`;
-    }
-
-    const query = `
-      <QUERY objecttype='TrainMessage' schemaversion='1.7'>
-        <FILTER>
-          <AND>
-            ${filter}
-          </AND>
-        </FILTER>
-        <INCLUDE>AffectedLocation</INCLUDE>
-        <INCLUDE>EventDateTime</INCLUDE>
-        <INCLUDE>Header</INCLUDE>
-        <INCLUDE>ReasonCode</INCLUDE>
-        <INCLUDE>TrafficImpact</INCLUDE>
-      </QUERY>
-    `;
-
-    const result = await this.makeRequest<{ TrainMessage: TrainMessage[] }>(query);
-    return result?.TrainMessage || [];
+    // Filter based on search criteria
+    return mockTrains.filter((train: TrainAnnouncement) => {
+      const matchesNumber = train.AdvertisedTrainIdent.includes(trainNumber);
+      const matchesFrom = !fromStation || 
+        train.FromLocation?.some(loc => 
+          loc.LocationName.toLowerCase().includes(fromStation.toLowerCase())
+        );
+      const matchesTo = !toStation || 
+        train.ToLocation?.some(loc => 
+          loc.LocationName.toLowerCase().includes(toStation.toLowerCase())
+        );
+      
+      return matchesNumber && matchesFrom && matchesTo;
+    });
   }
 
   async getStations(searchTerm: string): Promise<Array<{ LocationName: string; LocationSignature: string }>> {
-    const query = `
-      <QUERY objecttype='TrainStation' schemaversion='1.4'>
-        <FILTER>
-          <LIKE name='AdvertisedLocationName' value='%${searchTerm}%' />
-        </FILTER>
-        <INCLUDE>AdvertisedLocationName</INCLUDE>
-        <INCLUDE>LocationSignature</INCLUDE>
-      </QUERY>
-    `;
-
-    const result = await this.makeRequest<{ TrainStation: Array<{ AdvertisedLocationName: string; LocationSignature: string }> }>(query);
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    return result?.TrainStation?.map(station => ({
-      LocationName: station.AdvertisedLocationName,
-      LocationSignature: station.LocationSignature
-    })) || [];
+    const mockStations = this.getMockData('stations');
+    
+    return mockStations.filter((station: any) =>
+      station.LocationName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
+  async getTrainMessages(trainNumber?: string, location?: string): Promise<TrainMessage[]> {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return [
+      {
+        AffectedLocation: [{ LocationName: "Stockholm Central" }],
+        EventDateTime: new Date().toISOString(),
+        Header: "Förseningar på grund av signalfel",
+        ReasonCode: "SIG001",
+        TrafficImpact: [{ FromLocation: "Stockholm C", ToLocation: "Göteborg C" }]
+      }
+    ];
   }
 
   // Helper method to check if a train has disruptions
