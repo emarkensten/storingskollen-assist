@@ -97,7 +97,8 @@ const Index = () => {
       replacementTraffic: disruptionInfo.replacementTraffic,
       railwayEvents: disruptionInfo.railwayEvents,
       operativeEvents: disruptionInfo.operativeEvents,
-      enhancedReason: disruptionInfo.enhancedReason
+      enhancedReason: disruptionInfo.enhancedReason,
+      assistantSummary: disruptionInfo.assistantSummary
     };
   };
 

@@ -23,6 +23,7 @@ interface DisruptionCardProps {
   railwayEvents?: RailwayEvent[];
   operativeEvents?: OperativeEvent[];
   enhancedReason?: string;
+  assistantSummary?: string;
 }
 
 const DisruptionCard: React.FC<DisruptionCardProps> = ({
@@ -35,7 +36,8 @@ const DisruptionCard: React.FC<DisruptionCardProps> = ({
   replacementTraffic,
   railwayEvents,
   operativeEvents,
-  enhancedReason
+  enhancedReason,
+  assistantSummary
 }) => {
   const getStatusColor = () => {
     switch (status) {
@@ -74,6 +76,19 @@ const DisruptionCard: React.FC<DisruptionCardProps> = ({
       </CardHeader>
       
       <CardContent className="space-y-4">
+        {/* Super-reseassistent sammanfattning */}
+        {assistantSummary && (
+          <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+            <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div>
+              <p className="font-medium text-sm text-blue-900">Reseassistent</p>
+              <p className="text-sm text-blue-800">
+                {assistantSummary}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-start gap-3 p-3 bg-muted rounded-lg">
           <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />
           <div>
@@ -151,16 +166,44 @@ const DisruptionCard: React.FC<DisruptionCardProps> = ({
               <h4 className="font-semibold text-blue-600">Officiell information</h4>
             </div>
             <div className="space-y-2">
-              {operativeEvents.map((event, index) => (
-                <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="font-medium text-sm text-blue-900">
-                    {event.PublicMessage.Header}
-                  </p>
-                  <p className="text-sm text-blue-700 mt-1">
-                    {event.PublicMessage.Description}
-                  </p>
-                </div>
-              ))}
+              {operativeEvents.map((event, index) => {
+                // Check if event has TrafficImpact with PublicMessage
+                const publicMessage = event.TrafficImpact?.[0]?.PublicMessage;
+                if (publicMessage) {
+                  return (
+                    <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      {publicMessage.Header && (
+                        <p className="font-medium text-sm text-blue-900">
+                          {publicMessage.Header}
+                        </p>
+                      )}
+                      {publicMessage.Description && (
+                        <p className="text-sm text-blue-700 mt-1">
+                          {publicMessage.Description}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+                
+                // Fallback if no public message
+                if (event.EventType?.Description) {
+                  return (
+                    <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="font-medium text-sm text-blue-900">
+                        {event.EventType.Description}
+                      </p>
+                      {event.EventType.EventTypeCode && (
+                        <p className="text-xs text-blue-600 mt-1">
+                          Kod: {event.EventType.EventTypeCode}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+                
+                return null;
+              })}
             </div>
           </div>
         )}

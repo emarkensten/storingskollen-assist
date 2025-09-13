@@ -208,7 +208,7 @@ class TrafikverketAPI {
   }
 
   private buildTrainAnnouncementQuery(trainNumber?: string, fromStation?: string, toStation?: string): string {
-    let filters = '';
+    let filters = '<AND>';
     
     if (trainNumber) {
       filters += `<EQ name="AdvertisedTrainIdent" value="${trainNumber}" />`;
@@ -228,24 +228,15 @@ class TrafikverketAPI {
     
     filters += `<GT name="AdvertisedTimeAtLocation" value="${now.toISOString()}" />`;
     filters += `<LT name="AdvertisedTimeAtLocation" value="${tomorrow.toISOString()}" />`;
+    filters += '</AND>';
 
     return `
       <REQUEST>
         <LOGIN authenticationkey="${API_KEY}" />
-        <QUERY objecttype="TrainAnnouncement" schemaversion="1.6" limit="50">
+        <QUERY objecttype="TrainAnnouncement" schemaversion="1.9" limit="50">
           <FILTER>
             ${filters}
           </FILTER>
-          <INCLUDE>ActivityId</INCLUDE>
-          <INCLUDE>AdvertisedTrainIdent</INCLUDE>
-          <INCLUDE>AdvertisedTimeAtLocation</INCLUDE>
-          <INCLUDE>EstimatedTimeAtLocation</INCLUDE>
-          <INCLUDE>LocationSignature</INCLUDE>
-          <INCLUDE>FromLocation</INCLUDE>
-          <INCLUDE>ToLocation</INCLUDE>
-          <INCLUDE>Canceled</INCLUDE>
-          <INCLUDE>Deviation</INCLUDE>
-          <INCLUDE>TrackAtLocation</INCLUDE>
         </QUERY>
       </REQUEST>
     `;
@@ -255,7 +246,7 @@ class TrafikverketAPI {
     return `
       <REQUEST>
         <LOGIN authenticationkey="${API_KEY}" />
-        <QUERY objecttype="TrainStation" schemaversion="1.0" limit="20">
+        <QUERY objecttype="TrainStation" namespace="rail.infrastructure" schemaversion="1" limit="20">
           <FILTER>
             <LIKE name="AdvertisedLocationName" value="/${searchTerm}/i" />
           </FILTER>
@@ -265,7 +256,7 @@ class TrafikverketAPI {
   }
 
   private buildTrainMessageQuery(trainNumber?: string, location?: string): string {
-    let filters = '';
+    let filters = '<AND>';
     
     if (trainNumber) {
       filters += `<EQ name="AffectedLocation.LocationName" value="${trainNumber}" />`;
@@ -275,14 +266,17 @@ class TrafikverketAPI {
       filters += `<EQ name="AffectedLocation.LocationName" value="${location}" />`;
     }
 
-    // Get messages from the last 24 hours
+    // Get messages from the last 24 hours using LastUpdateDateTime
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    filters += `<GT name="EventDateTime" value="${yesterday.toISOString()}" />`;
+    const now = new Date();
+    filters += `<GT name="LastUpdateDateTime" value="${yesterday.toISOString()}" />`;
+    filters += `<LT name="LastUpdateDateTime" value="${now.toISOString()}" />`;
+    filters += '</AND>';
 
     return `
       <REQUEST>
         <LOGIN authenticationkey="${API_KEY}" />
-        <QUERY objecttype="TrainMessage" schemaversion="1.4" limit="20">
+        <QUERY objecttype="TrainMessage" schemaversion="1.7" limit="20">
           <FILTER>
             ${filters}
           </FILTER>
@@ -295,73 +289,61 @@ class TrafikverketAPI {
     return `
       <REQUEST>
         <LOGIN authenticationkey="${API_KEY}" />
-        <QUERY objecttype="ReplacementTraffic" schemaversion="1.0" limit="10">
+        <QUERY objecttype="TrainReplacementTraffic" namespace="JBS" schemaversion="1" limit="10">
           <FILTER>
-            <EQ name="ReplacesTrains.ReplacesTrain.AdvertisedTrainIdent" value="${trainNumber}" />
+            <LIKE name="Description" value="/${trainNumber}/i" />
           </FILTER>
-          <INCLUDE>ReplacesTrains</INCLUDE>
-          <INCLUDE>VehicleMode</INCLUDE>
-          <INCLUDE>VehicleIdentifier</INCLUDE>
-          <INCLUDE>Description</INCLUDE>
-          <INCLUDE>Stops</INCLUDE>
-          <INCLUDE>Status</INCLUDE>
         </QUERY>
       </REQUEST>
     `;
   }
 
   private buildRailwayEventQuery(activityId?: string, location?: string): string {
-    let filters = '';
+    let filters = '<AND>';
     
     if (location) {
-      filters += `<EQ name="SelectedSection.FromLocation.Signature" value="${location}" />`;
+      filters += `<LIKE name="EventId" value="/${location}/i" />`;
     }
 
-    // Get events from the last 24 hours
+    // Get events from the last 24 hours using CreatedDateTime
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    filters += `<GT name="StartDateTime" value="${yesterday.toISOString()}" />`;
+    const now = new Date();
+    filters += `<GT name="CreatedDateTime" value="${yesterday.toISOString()}" />`;
+    filters += `<LT name="CreatedDateTime" value="${now.toISOString()}" />`;
+    filters += '</AND>';
 
     return `
       <REQUEST>
         <LOGIN authenticationkey="${API_KEY}" />
-        <QUERY objecttype="RailwayEvent" schemaversion="1.0" limit="20">
+        <QUERY objecttype="RailwayEvent" namespace="ols.open" schemaversion="1" limit="20">
           <FILTER>
             ${filters}
           </FILTER>
-          <INCLUDE>StartDateTime</INCLUDE>
-          <INCLUDE>EndDateTime</INCLUDE>
-          <INCLUDE>ReasonCode</INCLUDE>
-          <INCLUDE>EventStatus</INCLUDE>
-          <INCLUDE>SelectedSection</INCLUDE>
         </QUERY>
       </REQUEST>
     `;
   }
 
   private buildOperativeEventQuery(location?: string): string {
-    let filters = '';
+    let filters = '<AND>';
     
-    if (location) {
-      filters += `<EQ name="EventSection.FromLocation.Signature" value="${location}" />`;
-    }
-
-    // Get events from the last 24 hours
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    filters += `<GT name="StartDateTime" value="${yesterday.toISOString()}" />`;
+    // Get events from the last 7 days using ModifiedDateTime
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    filters += `<GT name="ModifiedDateTime" value="${weekAgo.toISOString()}" />`;
+    filters += `<LT name="ModifiedDateTime" value="${now.toISOString()}" />`;
+    
+    // Only get active events
+    filters += `<EQ name="EventState" value="1" />`;
+    filters += '</AND>';
 
     return `
       <REQUEST>
         <LOGIN authenticationkey="${API_KEY}" />
-        <QUERY objecttype="OperativeEvent" schemaversion="1.0" limit="20">
+        <QUERY objecttype="PublicOperativeEvent" namespace="ols.open" schemaversion="1" limit="20">
           <FILTER>
             ${filters}
           </FILTER>
-          <INCLUDE>StartDateTime</INCLUDE>
-          <INCLUDE>EndDateTime</INCLUDE>
-          <INCLUDE>EventType</INCLUDE>
-          <INCLUDE>EventState</INCLUDE>
-          <INCLUDE>TrafficImpact</INCLUDE>
-          <INCLUDE>EventSection</INCLUDE>
         </QUERY>
       </REQUEST>
     `;
@@ -505,7 +487,7 @@ class TrafikverketAPI {
       const query = this.buildReplacementTrafficQuery(trainNumber);
       const response = await this.makeAPIRequest(query);
       
-      const replacements = response.RESPONSE?.RESULT?.[0]?.ReplacementTraffic || [];
+      const replacements = response.RESPONSE?.RESULT?.[0]?.TrainReplacementTraffic || [];
       
       if (replacements.length > 0) {
         return replacements.map((replacement: any) => ({
@@ -534,19 +516,13 @@ class TrafikverketAPI {
       const query = `
         <REQUEST>
           <LOGIN authenticationkey="${API_KEY}" />
-          <QUERY objecttype="ReplacementTraffic" schemaversion="1.0" limit="50">
-            <INCLUDE>ReplacesTrains</INCLUDE>
-            <INCLUDE>VehicleMode</INCLUDE>
-            <INCLUDE>VehicleIdentifier</INCLUDE>
-            <INCLUDE>Description</INCLUDE>
-            <INCLUDE>Stops</INCLUDE>
-            <INCLUDE>Status</INCLUDE>
+          <QUERY objecttype="TrainReplacementTraffic" namespace="JBS" schemaversion="1" limit="50">
           </QUERY>
         </REQUEST>
       `;
       
       const response = await this.makeAPIRequest(query);
-      const allReplacements = response?.RESPONSE?.RESULT?.[0]?.ReplacementTraffic || [];
+      const allReplacements = response?.RESPONSE?.RESULT?.[0]?.TrainReplacementTraffic || [];
       
       // Filtrera på klientsidan istället
       const filteredReplacements = allReplacements.filter((replacement: any) => {
@@ -605,7 +581,7 @@ class TrafikverketAPI {
       const query = this.buildOperativeEventQuery(location);
       const response = await this.makeAPIRequest(query);
       
-      const events = response.RESPONSE?.RESULT?.[0]?.OperativeEvent || [];
+      const events = response.RESPONSE?.RESULT?.[0]?.PublicOperativeEvent || [];
       
       return events.map((event: any) => ({
         StartDateTime: event.StartDateTime,
@@ -671,28 +647,59 @@ class TrafikverketAPI {
     });
   }
 
-  // Get comprehensive disruption information for a train
+  // Super-reseassistent: Get comprehensive travel information for a train
   async getComprehensiveDisruptionInfo(train: TrainAnnouncement): Promise<{
     train: TrainAnnouncement;
     replacementTraffic: ReplacementTraffic[];
     railwayEvents: RailwayEvent[];
     operativeEvents: OperativeEvent[];
     enhancedReason?: string;
+    assistantSummary?: string;
   }> {
     try {
-      // Get all related information in parallel
+      // 1. Hämta tågets status (redan har vi från train-objektet)
+      const isDelayed = train.EstimatedTimeAtLocation && train.EstimatedTimeAtLocation !== train.AdvertisedTimeAtLocation;
+      const isCancelled = train.Canceled;
+      
+      // 2. Om försenat/inställt, varför? Hämta detaljerad information
       const [replacementTraffic, railwayEvents, operativeEvents] = await Promise.all([
         this.getReplacementTraffic(train.AdvertisedTrainIdent),
         this.getRailwayEvents(train.ActivityId, train.LocationSignature),
         this.getOperativeEvents(train.LocationSignature)
       ]);
 
-      // Find the most relevant reason
+      // 3. Intelligent sammanslagning av orsaker
       let enhancedReason = train.Deviation?.[0]?.Description;
-      if (railwayEvents.length > 0) {
+      let assistantSummary = '';
+      
+      // Prioritering: Operativa meddelanden > Railway events > Train deviation
+      if (operativeEvents.length > 0) {
+        const activeEvent = operativeEvents.find(e => e.EventState === 1);
+        if (activeEvent?.TrafficImpact?.[0]?.PublicMessage?.Description) {
+          enhancedReason = activeEvent.TrafficImpact[0].PublicMessage.Description;
+        } else if (activeEvent?.EventType?.Description) {
+          enhancedReason = activeEvent.EventType.Description;
+        }
+      } else if (railwayEvents.length > 0 && railwayEvents[0].ReasonCode) {
         const latestEvent = railwayEvents[0];
         const userFriendlyReason = this.getReasonDescription(latestEvent.ReasonCode);
-        enhancedReason = `${userFriendlyReason}: ${latestEvent.Description}`;
+        enhancedReason = userFriendlyReason;
+      }
+
+      // 4. Skapa användarvänlig sammanfattning baserat på situation
+      if (isCancelled && replacementTraffic.length > 0) {
+        const replacement = replacementTraffic[0];
+        const departureInfo = replacement.Stops?.[0]?.ExpectedDepartureTime 
+          ? `kl ${this.formatTime(replacement.Stops[0].ExpectedDepartureTime)}`
+          : '';
+        assistantSummary = `Ditt tåg är inställt${enhancedReason ? ` på grund av: ${enhancedReason}` : ''}. En ${replacement.VehicleMode || 'ersättning'} avgår ${departureInfo}${replacement.Description ? `. ${replacement.Description}` : ''}.`;
+      } else if (isCancelled) {
+        assistantSummary = `Tåg ${train.AdvertisedTrainIdent} är inställt${enhancedReason ? ` på grund av: ${enhancedReason}` : ''}. Ingen ersättningstrafik hittades för tillfället.`;
+      } else if (isDelayed) {
+        const delayMinutes = this.calculateDelay(train.AdvertisedTimeAtLocation, train.EstimatedTimeAtLocation);
+        assistantSummary = `Tåg ${train.AdvertisedTrainIdent} är försenat ${delayMinutes} minuter${enhancedReason ? ` på grund av: ${enhancedReason}` : ''}. Ny avgångstid: ${this.formatTime(train.EstimatedTimeAtLocation)}.`;
+      } else {
+        assistantSummary = `Tåg ${train.AdvertisedTrainIdent} går enligt tidtabell.`;
       }
 
       return {
@@ -700,7 +707,8 @@ class TrafikverketAPI {
         replacementTraffic,
         railwayEvents,
         operativeEvents,
-        enhancedReason
+        enhancedReason,
+        assistantSummary
       };
     } catch (error) {
       console.error('Error getting comprehensive disruption info:', error);
@@ -709,9 +717,20 @@ class TrafikverketAPI {
         replacementTraffic: [],
         railwayEvents: [],
         operativeEvents: [],
-        enhancedReason: train.Deviation?.[0]?.Description
+        enhancedReason: train.Deviation?.[0]?.Description,
+        assistantSummary: 'Det gick inte att hämta fullständig störningsinformation just nu.'
       };
     }
+  }
+
+  // Hjälpfunktion för att beräkna försening i minuter
+  private calculateDelay(advertised?: string, estimated?: string): number {
+    if (!advertised || !estimated) return 0;
+    
+    const advertisedTime = new Date(advertised);
+    const estimatedTime = new Date(estimated);
+    
+    return Math.round((estimatedTime.getTime() - advertisedTime.getTime()) / (1000 * 60));
   }
 }
 
