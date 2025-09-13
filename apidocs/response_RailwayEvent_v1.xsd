@@ -1,0 +1,242 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dc="http://schema.data.trafikverket.se/dc">
+  <xs:annotation>
+    <xs:documentation>Första version, Trafikhändelser, anläggningsfel och/eller störningar i järnvägstrafiken</xs:documentation>
+  </xs:annotation>
+  <xs:element name="RESPONSE" type="RESPONSE" />
+  <xs:complexType name="RESPONSE">
+    <xs:sequence>
+      <xs:element minOccurs="1" maxOccurs="unbounded" name="RESULT" type="RESULT" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="RESULT">
+    <xs:sequence>
+      <xs:element maxOccurs="unbounded" name="RailwayEvent" type="RailwayEvent" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Trafikhändelser, anläggningsfel och/eller störningar i järnvägstrafiken</xs:documentation>
+          <xs:documentation xml:lang="en">Railway events, failures and/or disruptions in the railway traffic</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" name="ERROR" type="ERROR" />
+      <xs:element minOccurs="0" name="INFO" type="INFO" />
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="ERROR">
+    <xs:sequence>
+      <xs:element name="SOURCE" type="xs:string" minOccurs="0" />
+      <xs:element name="MESSAGE" type="xs:string" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="LASTMODIFIED">
+    <xs:attribute name="datetime" type="xs:dateTime" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="EVALRESULT">
+    <xs:sequence>
+      <xs:any minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="INFO">
+    <xs:sequence>
+      <xs:element name="LASTMODIFIED" type="LASTMODIFIED" minOccurs="0" />
+      <xs:element name="LASTCHANGEID" type="xs:string" minOccurs="0" />
+      <xs:element name="EVALRESULT" type="EVALRESULT" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="SSEURL" type="xs:string" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="RailwayEvent">
+    <xs:sequence>
+      <xs:element dc:key="true" maxOccurs="1" name="EventId" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Händelsens ID från Basun</xs:documentation>
+          <xs:documentation xml:lang="en">Event ID from Basun</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="StartDateTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Händelsens starttidpunkt</xs:documentation>
+          <xs:documentation xml:lang="en">Start time of the railway event</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="EndDateTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Händelsens sluttidpunkt</xs:documentation>
+          <xs:documentation xml:lang="en">End time of the railway event</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="ReasonCode" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Kod för händelsens orsak (orsakskod)</xs:documentation>
+          <xs:documentation xml:lang="en">Code for the railway events reason</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="OperativeEventId" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">ID för relaterad operativ händelse</xs:documentation>
+          <xs:documentation xml:lang="en">ID of related operative event</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="EventStatus" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Händelsens status (MöjligOperativHändelse, BedömdEjOperativHändelse, OperativHändelse)</xs:documentation>
+          <xs:documentation xml:lang="en">Status of the railway event (MöjligOperativHändelse=operative event candidate, BedömdEjOperativHändelse=assessed not operative event, OperativHändelse=operative event)</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element ref="Deleted" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Borttagen</xs:documentation>
+          <xs:documentation xml:lang="en">Deleted</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="Version" type="xs:int" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Händelsens version</xs:documentation>
+          <xs:documentation xml:lang="en">Version of the railway event</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="CreatedDateTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Tidpunkt då händelsen skapades</xs:documentation>
+          <xs:documentation xml:lang="en">Time of creation of railway event</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="ModifiedDateTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Tidpunkt när händelsen ändrades</xs:documentation>
+          <xs:documentation xml:lang="en">Time of modification</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="unbounded" name="SelectedSection" type="SelectedSection" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Ingående sträckor som berör händelsen</xs:documentation>
+          <xs:documentation xml:lang="en">Railway sections included in the event</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="ModifiedTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="en">
+        Specifies when the object is stored.
+      </xs:documentation>
+          <xs:documentation xml:lang="sv">
+        Anger när objektet är sparat.
+      </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attributeGroup ref="QueueAttributes" />
+  </xs:complexType>
+  <xs:element default="false" name="Deleted" type="xs:boolean">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">
+				Specifies if the object is deleted.
+			</xs:documentation>
+      <xs:documentation xml:lang="sv">
+				Anger om objektet är raderat.
+			</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="SelectedSection">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">Ingående sträcka i trafikhändelsen</xs:documentation>
+      <xs:documentation xml:lang="en">Section included in railway event</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element maxOccurs="1" name="FromLocation" type="Location" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Sträckans från-plats</xs:documentation>
+          <xs:documentation xml:lang="en">Start location of section</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="ToLocation" type="Location" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Sträckans till-plats</xs:documentation>
+          <xs:documentation xml:lang="en">End location of section</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="ViaLocation" type="Location" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Sträckans via-plats</xs:documentation>
+          <xs:documentation xml:lang="en">Intermediate location of section</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="unbounded" name="IntermediateLocation" type="IntermediateLocation" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Mellanliggande platser som ingår i sträckan</xs:documentation>
+          <xs:documentation xml:lang="en">Intermediate locations part of the section</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:attributeGroup name="QueueAttributes">
+    <xs:attribute name="checkoutid" type="xs:string" use="optional" />
+    <xs:attribute name="checkouts" type="xs:integer" use="optional" />
+    <xs:attribute name="leaseduntil" type="xs:dateTime" use="optional" />
+    <xs:attribute name="acknowledged" type="xs:dateTime" use="optional" />
+    <xs:attribute name="statuscode" type="xs:unsignedByte" use="optional" />
+    <xs:attribute name="itemsacknowledged" type="xs:long" use="optional" />
+    <xs:attribute name="itemsleft" type="xs:long" use="optional" />
+  </xs:attributeGroup>
+  <xs:complexType name="Location">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">Plats</xs:documentation>
+      <xs:documentation xml:lang="en">Location</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element maxOccurs="1" name="CountryCode" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Platsens landskod</xs:documentation>
+          <xs:documentation xml:lang="en">Country code of the location</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="LocationIncluded" type="xs:boolean" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Platsen ingår i sträcka</xs:documentation>
+          <xs:documentation xml:lang="en">Location included in section</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="LocationPrimaryCode" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Kod enligt TAF/TAP TSI</xs:documentation>
+          <xs:documentation xml:lang="en">Primary location code according to TAF/TAP TSI</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="Signature" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Platsens signatur</xs:documentation>
+          <xs:documentation xml:lang="en">Signature of the location</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="IntermediateLocation">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">Via-plats som ingår i händelsen</xs:documentation>
+      <xs:documentation xml:lang="en">Intermediate location included in event</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element maxOccurs="1" name="Signature" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Platsens signatur</xs:documentation>
+          <xs:documentation xml:lang="en">Signature of the location</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="CountryCode" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Platsens landskod</xs:documentation>
+          <xs:documentation xml:lang="en">Country code of the location</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="LocationPrimaryCode" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Kod enligt TAF/TAP TSI</xs:documentation>
+          <xs:documentation xml:lang="en">Primary location code according to TAF/TAP TSI</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="1" name="LocationOrder" type="xs:int" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Sorteringsordning av platser enligt tidtabell</xs:documentation>
+          <xs:documentation xml:lang="en">Sort order of locations in accordance with timetable</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

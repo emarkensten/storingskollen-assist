@@ -1,0 +1,623 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:dc="http://schema.data.trafikverket.se/dc1.0.xsd">
+  <xs:annotation>
+    <xs:documentation xml:lang="sv">Schema för ersättningstrafik</xs:documentation>
+    <xs:documentation xml:lang="en">Schema for replacement traffic</xs:documentation>
+  </xs:annotation>
+  <xs:element name="RESPONSE" type="RESPONSE" />
+  <xs:complexType name="RESPONSE">
+    <xs:sequence>
+      <xs:element minOccurs="1" maxOccurs="unbounded" name="RESULT" type="RESULT" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="RESULT">
+    <xs:sequence>
+      <xs:element name="ReplacementTraffic" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element dc:key="true" maxOccurs="1" ref="Source" minOccurs="0" />
+            <xs:element dc:key="true" maxOccurs="1" ref="Id" minOccurs="0" />
+            <xs:element maxOccurs="1" ref="ReplacesTrains" minOccurs="0" />
+            <xs:element maxOccurs="1" ref="Description" minOccurs="0" />
+            <xs:element maxOccurs="1" ref="VehicleIdentifier" minOccurs="0" />
+            <xs:element maxOccurs="1" ref="VehicleMode" minOccurs="0" />
+            <xs:element maxOccurs="1" ref="Status" minOccurs="0" />
+            <xs:element maxOccurs="1" ref="WheelChair" minOccurs="0" />
+            <xs:element maxOccurs="1" ref="Toilet" minOccurs="0" />
+            <xs:element maxOccurs="1" ref="Stops" minOccurs="0" />
+            <xs:element maxOccurs="1" ref="Deleted" minOccurs="0" />
+            <xs:element name="ModifiedTime" type="xs:dateTime" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation xml:lang="en">
+        Specifies when the object is stored.
+      </xs:documentation>
+                <xs:documentation xml:lang="sv">
+        Anger när objektet är sparat.
+      </xs:documentation>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+          <xs:attributeGroup ref="QueueAttributes" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element minOccurs="0" name="ERROR" type="ERROR" />
+      <xs:element minOccurs="0" name="INFO" type="INFO" />
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="ERROR">
+    <xs:sequence>
+      <xs:element name="SOURCE" type="xs:string" minOccurs="0" />
+      <xs:element name="MESSAGE" type="xs:string" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="LASTMODIFIED">
+    <xs:attribute name="datetime" type="xs:dateTime" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="EVALRESULT">
+    <xs:sequence>
+      <xs:any minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="INFO">
+    <xs:sequence>
+      <xs:element name="LASTMODIFIED" type="LASTMODIFIED" minOccurs="0" />
+      <xs:element name="LASTCHANGEID" type="xs:string" minOccurs="0" />
+      <xs:element name="EVALRESULT" type="EVALRESULT" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="SSEURL" type="xs:string" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Source">
+    <xs:annotation>
+      <xs:documentation>
+				Namn/identifierare på avsändare
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="100" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="Id">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Avsändarinternt id, tillsammans med "Avsändare" identifierar detta turen
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="100" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="ReplacesTrains">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Lista med de tåg som ersätts
+			</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="ReplacesTrain" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Description">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Beskrivande text för att resenär ska känna igen bussen/taxin.. (Gärna tågnummer+löpnummer ?)
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="1000" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="VehicleIdentifier">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Registreringsnummer eller alternativt id på fordon
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="20" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="VehicleMode">
+    <xs:annotation>
+      <xs:documentation>
+				Fordonstyp enligt NetEx-standard (taxi tillagd): [air, bus, coach, ferry, metro, rail, tram, taxi]
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:whiteSpace value="replace" />
+        <xs:maxLength value="5" />
+        <xs:enumeration value="air" />
+        <xs:enumeration value="bus" />
+        <xs:enumeration value="coach" />
+        <xs:enumeration value="ferry" />
+        <xs:enumeration value="metro" />
+        <xs:enumeration value="rail" />
+        <xs:enumeration value="tram" />
+        <xs:enumeration value="taxi" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="Status">
+    <xs:annotation>
+      <xs:documentation>
+				Planerad/beställd/bekräftad/Pågående/avslutat/inställd. Begrepp enligt Netex
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:whiteSpace value="replace" />
+        <xs:maxLength value="12" />
+        <xs:enumeration value="planned" />
+        <xs:enumeration value="ordered" />
+        <xs:enumeration value="confirmed" />
+        <xs:enumeration value="running" />
+        <xs:enumeration value="finished" />
+        <xs:enumeration value="canceled" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="WheelChair">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Anger om resan fungerar för resa med rullstol (och därmed även barnvagn)
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:boolean" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="Toilet">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Anger om det finns toalett på resan
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:boolean" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="Stops">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Lista med tidtabell för resan
+			</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="Stop" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element default="false" name="Deleted" type="xs:boolean">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">
+        Specifies if the object is deleted.
+      </xs:documentation>
+      <xs:documentation xml:lang="sv">
+        Anger om objektet är raderat.
+      </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:attributeGroup name="QueueAttributes">
+    <xs:attribute name="checkoutid" type="xs:string" use="optional" />
+    <xs:attribute name="checkouts" type="xs:integer" use="optional" />
+    <xs:attribute name="leaseduntil" type="xs:dateTime" use="optional" />
+    <xs:attribute name="acknowledged" type="xs:dateTime" use="optional" />
+    <xs:attribute name="statuscode" type="xs:unsignedByte" use="optional" />
+    <xs:attribute name="itemsacknowledged" type="xs:long" use="optional" />
+    <xs:attribute name="itemsleft" type="xs:long" use="optional" />
+  </xs:attributeGroup>
+  <xs:element name="ReplacesTrain">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="1" ref="TransportOperationalIdentifiers" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="AdvertisedTrainIdent" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="ScheduledDepartureDate" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="ProductInformation" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Stop">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="1" ref="StopId" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="PlaceSignature" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="PrimaryLocationCode" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="CountryCode" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="AdvertisedDestination" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="StopDescription" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="StopPosition" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="PlannedArrivalTime" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="ExpectedArrivalTime" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="PlannedDepartureTime" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="ExpectedDepartureTime" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="Sequence" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="DisembarkingOnly" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="TravellerNote" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="VehicleStopArrival" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="VehicleStopDeparture" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="ConnectingStops" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="TransportOperationalIdentifiers">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Tågidentifierare enligt TAF/TAP, förslagsvis typ TR och/eller PA
+			</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" name="TransportOperationalIdentifier" type="CompositIdentifierOperationalType" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AdvertisedTrainIdent">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Annonserat tågnummer
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="20" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="ScheduledDepartureDate">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Utgångsdatum för det annonserade tåget "YYYY-MM-DD"
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:date" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="ProductInformation">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Produktinformation för tåget, trafikutövare
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="100" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="StopId">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Avsändarinternt hållplats-id
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="20" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="PlaceSignature">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Platssignatur enligt Trafikverkets beteckningar
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="20" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="PrimaryLocationCode">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Platskod enligt TAF/TAP
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:integer" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="CountryCode">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Landskod enligt ISO 3166-1
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="2" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="AdvertisedDestination">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Beskrivning av avgången
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="100" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="StopDescription">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Beskrivning av hållplatsen
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="100" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="StopPosition">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Koordinater för hållplatsen
+			</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="1" ref="Location" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="PlannedArrivalTime">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Planerad ankomsttid för platsen
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:dateTime" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="ExpectedArrivalTime">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Beräknad ankomsttid för platsen
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:dateTime" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="PlannedDepartureTime">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Planerad avgångstid för platsen
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:dateTime" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="ExpectedDepartureTime">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Beräknad avgångstid för platsen
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:dateTime" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="Sequence">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Ordningsföljd för platserna
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:integer" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="DisembarkingOnly">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Endast avstigande
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:boolean" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="TravellerNote">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Fritext att visa för resenärer
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:maxLength value="1000" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="VehicleStopArrival">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Faktisk ankomsttid
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:dateTime" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="VehicleStopDeparture">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Faktisk avgångstid
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:dateTime" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="ConnectingStops">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Lista med destinationer som ersättningstrafiken ansluter till från platsen
+			</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="ConnectingStop" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="CompositIdentifierOperationalType">
+    <xs:annotation>
+      <xs:documentation>Used for unique identification of the objects handled in the messages such as train, path, path request or case refernce.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element ref="ObjectType" minOccurs="0" />
+      <xs:element ref="Company" minOccurs="0" />
+      <xs:element ref="Core" minOccurs="0" />
+      <xs:element ref="Variant" minOccurs="0" />
+      <xs:element ref="TimetableYear" minOccurs="0" />
+      <xs:element ref="StartDate" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>Is only used in the operational phase and refers to the date where the single train will start the train journey</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Location">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Koordinater i WGS84
+			</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="1" ref="Longitude" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="Latitude" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ConnectingStop">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="1" ref="StopId" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="PlaceSignature" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="PrimaryLocationCode" minOccurs="0" />
+        <xs:element maxOccurs="1" ref="CountryCode" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ObjectType">
+    <xs:annotation>
+      <xs:documentation>Provides a possibility for differentiation between the objects: Train (TR), Route (RO), Path (PA), Case Reference (CR), Path Request (PR) and TCR(TC)</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:minLength value="2" />
+        <xs:maxLength value="2" />
+        <xs:pattern value="[0-9A-Z]{2}" />
+        <xs:enumeration value="TR" />
+        <xs:enumeration value="RO" />
+        <xs:enumeration value="PA" />
+        <xs:enumeration value="CR" />
+        <xs:enumeration value="PR" />
+        <xs:enumeration value="TC" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="Company" type="CompanyCode">
+    <xs:annotation>
+      <xs:documentation>Identifies a railway company (RU or IM)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Core">
+    <xs:annotation>
+      <xs:documentation>It is the main part of identifier and is determent by the company that creates  it.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:minLength value="12" />
+        <xs:whiteSpace value="replace" />
+        <xs:maxLength value="12" />
+        <xs:pattern value="[\-\*0-9A-Z]{12}" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="Variant">
+    <xs:annotation>
+      <xs:documentation>The variant shows a relationship between two identifiers referring to the same business case</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:minLength value="2" />
+        <xs:maxLength value="2" />
+        <xs:pattern value="[0-9A-Z]{2}" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="TimetableYear">
+    <xs:annotation>
+      <xs:documentation>Refers to the timetable period in which the business will be carried out</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:integer">
+        <xs:minInclusive value="2012" />
+        <xs:maxInclusive value="2097" />
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="StartDate" type="xs:date">
+    <xs:annotation>
+      <xs:documentation>The start of the date/time in effect</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Longitude">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Longitude enligt WGS84
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:float" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:element name="Latitude">
+    <xs:annotation>
+      <xs:documentation xml:lang="sv">
+				Latitude enligt WGS84
+			</xs:documentation>
+    </xs:annotation>
+    <xs:simpleType>
+      <xs:restriction base="xs:float" />
+    </xs:simpleType>
+  </xs:element>
+  <xs:simpleType name="CompanyCode">
+    <xs:annotation>
+      <xs:documentation>Identifies the RU, IM or other company involved in the Rail Transport Chain</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="String4-4">
+      <xs:pattern value="[0-9A-Z]{4}" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="String4-4">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="4" />
+      <xs:maxLength value="4" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

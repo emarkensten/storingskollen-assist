@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Clock, Bus, MapPin, Info } from 'lucide-react';
+import { ReplacementTraffic, RailwayEvent, OperativeEvent } from '@/lib/trafikverket-api';
+import ReplacementTrafficCard from './ReplacementTrafficCard';
 
 interface DisruptionCardProps {
   trainNumber: string;
@@ -16,6 +18,11 @@ interface DisruptionCardProps {
     location: string;
     identifier: string;
   };
+  // New props for enhanced data
+  replacementTraffic?: ReplacementTraffic[];
+  railwayEvents?: RailwayEvent[];
+  operativeEvents?: OperativeEvent[];
+  enhancedReason?: string;
 }
 
 const DisruptionCard: React.FC<DisruptionCardProps> = ({
@@ -24,7 +31,11 @@ const DisruptionCard: React.FC<DisruptionCardProps> = ({
   status,
   reason,
   delay,
-  replacement
+  replacement,
+  replacementTraffic,
+  railwayEvents,
+  operativeEvents,
+  enhancedReason
 }) => {
   const getStatusColor = () => {
     switch (status) {
@@ -67,7 +78,9 @@ const DisruptionCard: React.FC<DisruptionCardProps> = ({
           <AlertTriangle className="h-5 w-5 text-warning mt-0.5" />
           <div>
             <p className="font-medium text-sm">Orsak till störning</p>
-            <p className="text-sm text-muted-foreground">{reason}</p>
+            <p className="text-sm text-muted-foreground">
+              {enhancedReason || reason}
+            </p>
           </div>
         </div>
 
@@ -81,7 +94,23 @@ const DisruptionCard: React.FC<DisruptionCardProps> = ({
           </div>
         )}
 
-        {replacement && (
+        {/* Enhanced Replacement Traffic */}
+        {replacementTraffic && replacementTraffic.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Bus className="h-5 w-5 text-accent" />
+              <h4 className="font-semibold text-accent">Ersättningstrafik tillgänglig</h4>
+            </div>
+            <div className="space-y-3">
+              {replacementTraffic.map((replacement, index) => (
+                <ReplacementTrafficCard key={index} replacement={replacement} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Fallback to old replacement format */}
+        {!replacementTraffic && replacement && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Bus className="h-5 w-5 text-accent" />
@@ -110,6 +139,28 @@ const DisruptionCard: React.FC<DisruptionCardProps> = ({
                 <MapPin className="h-4 w-4" />
                 Visa på karta
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Official Messages */}
+        {operativeEvents && operativeEvents.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-blue-600" />
+              <h4 className="font-semibold text-blue-600">Officiell information</h4>
+            </div>
+            <div className="space-y-2">
+              {operativeEvents.map((event, index) => (
+                <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="font-medium text-sm text-blue-900">
+                    {event.PublicMessage.Header}
+                  </p>
+                  <p className="text-sm text-blue-700 mt-1">
+                    {event.PublicMessage.Description}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         )}

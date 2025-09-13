@@ -3,29 +3,27 @@ import DisruptionCard from './DisruptionCard';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Plus } from 'lucide-react';
 
-const Dashboard = () => {
-  // Mock data for disruptions
-  const disruptions = [
-    {
-      trainNumber: '421',
-      route: 'Stockholm Central → Göteborg Central',
-      status: 'replacement' as const,
-      reason: 'Signalfel strax utanför Södertälje Syd. Tekniker arbetar med att åtgärda problemet.',
-      replacement: {
-        type: 'Vit expressbuss märkt "SJ Ersättningstrafik"',
-        departure: '14:10',
-        location: 'Klarabergsviadukten, hållplats A',
-        identifier: 'Reg.nr ABC 123'
-      }
-    },
-    {
-      trainNumber: '537',
-      route: 'Malmö Central → Stockholm Central',
-      status: 'delayed' as const,
-      reason: 'Växelfel vid Lund har medfört förseningar i trafiken.',
-      delay: '14:45 (+15 minuter)'
-    }
-  ];
+interface Disruption {
+  trainNumber: string;
+  route: string;
+  status: 'delayed' | 'cancelled' | 'replacement';
+  reason: string;
+  delay?: string;
+  replacement?: {
+    type: string;
+    departure: string;
+    location: string;
+    identifier: string;
+  };
+}
+
+interface DashboardProps {
+  disruptions: Disruption[];
+  onRefresh?: () => void;
+  onAddTrip?: () => void;
+}
+
+const Dashboard = ({ disruptions, onRefresh, onAddTrip }: DashboardProps) => {
 
   return (
     <section className="py-12 bg-background">
@@ -36,11 +34,11 @@ const Dashboard = () => {
             <p className="text-muted-foreground mt-2">Dina bevakade resor med pågående störningar</p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={onRefresh}>
               <RefreshCw className="h-4 w-4" />
               Uppdatera
             </Button>
-            <Button variant="default" size="sm">
+            <Button variant="default" size="sm" onClick={onAddTrip}>
               <Plus className="h-4 w-4" />
               Lägg till resa
             </Button>

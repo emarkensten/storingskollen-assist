@@ -1,0 +1,260 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:api="http://api.trafikinfo.trafikverket.se">
+  <xs:annotation>
+    <xs:documentation xml:lang="sv">Allmän annonseringsinformation för en station och mediatyp (Monitor, Plattformsskylt, Utrop).</xs:documentation>
+    <xs:documentation xml:lang="en">Messages to advertise and announce at stations and platforms"</xs:documentation>
+  </xs:annotation>
+  <xs:element name="RESPONSE" type="RESPONSE" />
+  <xs:complexType name="RESPONSE">
+    <xs:sequence>
+      <xs:element minOccurs="1" maxOccurs="unbounded" name="RESULT" type="RESULT" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="RESULT">
+    <xs:sequence>
+      <xs:element name="TrainStationMessage" type="TrainStationMessage" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element minOccurs="0" name="ERROR" type="ERROR" />
+      <xs:element minOccurs="0" name="INFO" type="INFO" />
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="ERROR">
+    <xs:sequence>
+      <xs:element name="SOURCE" type="xs:string" minOccurs="0" />
+      <xs:element name="MESSAGE" type="xs:string" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="LASTMODIFIED">
+    <xs:attribute name="datetime" type="xs:dateTime" use="optional" />
+  </xs:complexType>
+  <xs:complexType name="EVALRESULT">
+    <xs:sequence>
+      <xs:any minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="INFO">
+    <xs:sequence>
+      <xs:element name="LASTMODIFIED" type="LASTMODIFIED" minOccurs="0" />
+      <xs:element name="LASTCHANGEID" type="xs:string" minOccurs="0" />
+      <xs:element name="EVALRESULT" type="EVALRESULT" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="SSEURL" type="xs:string" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="TrainStationMessage">
+    <xs:sequence>
+      <xs:element api:key="true" name="Id" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Unikt id för varje meddelande</xs:documentation>
+          <xs:documentation xml:lang="en">Unique identifier</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="MediaType" type="MediaType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">
+              Anger vilket presentationsmedia meddelandet gäller.<br />
+              'Monitor'<br />
+              'Plattformsskylt'<br />
+              'Utrop'
+            </xs:documentation>
+          <xs:documentation xml:lang="en">
+              Type of media.<br />
+              'Monitor' - Monitor<br />
+              'Plattformsskylt'- Platform sign<br />
+              'Utrop' - Announcement
+            </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="LocationCode" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Stationens platssignatur</xs:documentation>
+          <xs:documentation xml:lang="en">Location code</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" name="EventId" type="xs:string">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Trafikhändelsenummer från Basun</xs:documentation>
+          <xs:documentation xml:lang="en">Id in the BASUN application</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="StartDateTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">När meddelandet ska börja visas</xs:documentation>
+          <xs:documentation xml:lang="en">When the message should start to be displayed</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="EndDateTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">När meddelandet ska sluta visas</xs:documentation>
+          <xs:documentation xml:lang="en">When the message should not be displayed anymore</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="SplitActivationTime" type="xs:boolean" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Anger att ett meddelande bara skall gälla mellan tidpunkterna i Starttid och Sluttid, för varje dag i intervallet Starttid och Sluttid</xs:documentation>
+          <xs:documentation xml:lang="en">For the dates specified in Start and EndDateTime, specifies if the message should be displayed around the clock or just between the time set in Start and EndDateTime each day</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="FreeText" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Annonseringstexten</xs:documentation>
+          <xs:documentation xml:lang="en">Informational text</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Status" type="MessageStatus2" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Meddelandets viktighetsgrad</xs:documentation>
+          <xs:documentation xml:lang="en">How important the message are (in relative to other messages)</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="VersionNumber" type="xs:int" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Version på detta meddelande</xs:documentation>
+          <xs:documentation xml:lang="en">Versioning number for this external message</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" name="ActiveDays" type="xs:string">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">En sträng som beskriver om ett meddelande ska vara aktivt (Y) eller inte (N) för varje dag från Starttid till Sluttid.</xs:documentation>
+          <xs:documentation xml:lang="en">A string with an 'Y' or 'N' for each day between the start and the end date. 'Y' if the message is to be active that day and 'N' otherwise.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="MonitorAttributes" type="MonitorAttributes" />
+      <xs:element minOccurs="0" maxOccurs="1" name="PlatformSignAttributes" type="PlatformSignAttributes" />
+      <xs:element minOccurs="0" maxOccurs="1" name="PublicAnnouncementAttributes" type="PublicAnnouncementAttributes" />
+      <xs:element name="Deleted" type="xs:boolean" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Anger att dataposten raderats</xs:documentation>
+          <xs:documentation xml:lang="en">Specifies if the element has been deleted</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="ModifiedTime" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Tidpunkt då dataposten ändrades</xs:documentation>
+          <xs:documentation xml:lang="en">Time when the element wast last modified</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="MediaType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Monitor" />
+      <xs:enumeration value="Plattformsskylt" />
+      <xs:enumeration value="Utrop" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="MessageStatus2">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Lag" />
+      <xs:enumeration value="Normal" />
+      <xs:enumeration value="Hog" />
+      <xs:enumeration value="StortLage" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="MonitorAttributes">
+    <xs:sequence>
+      <xs:element name="CommuterMonitor" type="xs:boolean" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Anger om meddelandet skall visas på pendelmonitor.</xs:documentation>
+          <xs:documentation xml:lang="en">Specifies if the monitor is a commuter monitor or regular</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="BigScreenMonitorActivated" type="xs:boolean" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Anger om monitormeddelandet även skall visas på stortavla.</xs:documentation>
+          <xs:documentation xml:lang="en">Specifies if the message is to be shown on a big screen monitor</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PlatformSignAttributes">
+    <xs:sequence>
+      <xs:element name="CommuterPlatformSign" type="xs:boolean" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Anger om meddelandet skall visas på pendelplattformsskylt eller en vanlig plattformsskylt.</xs:documentation>
+          <xs:documentation xml:lang="en">Specifies if the message is to be shown on a commuter platform sign or regular platform sign</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="TrackList" type="TrackList">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Vilka spår som meddelandet gäller</xs:documentation>
+          <xs:documentation xml:lang="en">The tracks that are affected by the message</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PublicAnnouncementAttributes">
+    <xs:sequence>
+      <xs:element name="EnglishText" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Utropstext på engelska.</xs:documentation>
+          <xs:documentation xml:lang="en">Announcement text in English.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="EnglishPublicAnnouncementActivated" type="xs:boolean" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Om Utropsystem ska ropa på engelska.</xs:documentation>
+          <xs:documentation xml:lang="en">Specifies if the message is announced in English.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PublicAnnouncementPlanList" type="PublicAnnouncementPlanList">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">En planering för vilka dagar och tidpunkter ett meddelande skall ropas.</xs:documentation>
+          <xs:documentation xml:lang="en">Plans for when the message is to be announced</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PublicAnnouncementZoneList" type="PublicAnnouncementZoneList" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="TrackList">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Track" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PublicAnnouncementPlanList">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="PublicAnnouncementPlan" type="PublicAnnouncementPlan" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PublicAnnouncementZoneList">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="PublicAnnouncementZone" type="xs:string">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Anger en zon där meddelandet skall utropas</xs:documentation>
+          <xs:documentation xml:lang="en">Indicates a zone for where the message is to be announced</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PublicAnnouncementPlan">
+    <xs:sequence>
+      <xs:element name="ValidFrom" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Planeringen är giltig efter denna tidpunkt och är första aktiva dagen i planeringen.</xs:documentation>
+          <xs:documentation xml:lang="en">The start and first valid date of the plan.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="ValidTo" type="xs:dateTime" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Planeringen är giltig fram till denna tidpunkt och är sista aktiva dagen i planeringen.</xs:documentation>
+          <xs:documentation xml:lang="en">The end and last valid date of the plan.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="ActiveDays" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">En sträng som beskriver om en planering är aktiv (Y) eller inte (N) för varje dag från Starttid till Sluttid.</xs:documentation>
+          <xs:documentation xml:lang="en">A string with an 'Y' or 'N' for each day between the start and the end date. 'Y' if the message is to be announced that day and 'N' otherwise.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element minOccurs="0" maxOccurs="1" name="PublicAnnouncementOccasionList" type="PublicAnnouncementOccasionList" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="PublicAnnouncementOccasionList">
+    <xs:sequence>
+      <xs:element minOccurs="1" maxOccurs="unbounded" name="PublicAnnouncementOccasion" type="xs:int">
+        <xs:annotation>
+          <xs:documentation xml:lang="sv">Anger vilken minut på dygnet ett utrop skall utföras</xs:documentation>
+          <xs:documentation xml:lang="en">Indicates which minute in the day the announcement is to be made</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>
