@@ -84,19 +84,22 @@ const TrainSearch = ({ onTrainFound }: { onTrainFound?: (trainData: any) => void
           variant: "destructive"
         });
       } else {
-        // Check all trains for disruptions
-        const trainsWithDisruptions = results.filter(train => trafikverketAPI.hasDisruption(train));
+        // Take the first train from search results
+        const firstTrain = results[0];
         
-        if (trainsWithDisruptions.length > 0) {
+        // Add the first train for monitoring regardless of disruption status
+        if (onTrainFound) {
+          onTrainFound(firstTrain);
+        }
+        
+        // Check if the first train has disruptions and show appropriate message
+        const hasDisruption = trafikverketAPI.hasDisruption(firstTrain);
+        
+        if (hasDisruption) {
           toast({
             title: "Tåg hittat med störning!",
-            description: `Tåg ${trainNumber} har ${trainsWithDisruptions.length} pågående störning(ar). Hämtar detaljerad information...`
+            description: `Tåg ${trainNumber} har pågående störning(ar). Hämtar detaljerad information...`
           });
-          
-          // Add all trains with disruptions
-          if (onTrainFound) {
-            trainsWithDisruptions.forEach(train => onTrainFound(train));
-          }
         } else {
           toast({
             title: "Tåg hittat och bevakas",

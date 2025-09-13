@@ -14,13 +14,6 @@ export interface TrainAnnouncement {
   TrackAtLocation?: string;
 }
 
-export interface TrainMessage {
-  AffectedLocation: Array<{ LocationName: string }>;
-  EventDateTime: string;
-  Header: string;
-  ReasonCode?: string;
-  TrafficImpact?: Array<{ FromLocation: string; ToLocation: string }>;
-}
 
 export interface TrainStation {
   LocationName: string;
@@ -255,41 +248,12 @@ class TrafikverketAPI {
     `;
   }
 
-  private buildTrainMessageQuery(trainNumber?: string, location?: string): string {
-    let filters = '<AND>';
-    
-    if (trainNumber) {
-      filters += `<EQ name="AffectedLocation.LocationName" value="${trainNumber}" />`;
-    }
-    
-    if (location) {
-      filters += `<EQ name="AffectedLocation.LocationName" value="${location}" />`;
-    }
-
-    // Get messages from the last 24 hours using LastUpdateDateTime
-    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const now = new Date();
-    filters += `<GT name="LastUpdateDateTime" value="${yesterday.toISOString()}" />`;
-    filters += `<LT name="LastUpdateDateTime" value="${now.toISOString()}" />`;
-    filters += '</AND>';
-
-    return `
-      <REQUEST>
-        <LOGIN authenticationkey="${API_KEY}" />
-        <QUERY objecttype="TrainMessage" schemaversion="1.7" limit="20">
-          <FILTER>
-            ${filters}
-          </FILTER>
-        </QUERY>
-      </REQUEST>
-    `;
-  }
 
   private buildReplacementTrafficQuery(trainNumber: string): string {
     return `
       <REQUEST>
         <LOGIN authenticationkey="${API_KEY}" />
-        <QUERY objecttype="TrainReplacementTraffic" namespace="JBS" schemaversion="1" limit="10">
+        <QUERY objecttype="ReplacementTraffic" namespace="jbs" schemaversion="1" limit="10">
           <FILTER>
             <LIKE name="Description" value="/${trainNumber}/i" />
           </FILTER>
@@ -302,7 +266,13 @@ class TrafikverketAPI {
     let filters = '<AND>';
     
     if (location) {
-      filters += `<LIKE name="EventId" value="/${location}/i" />`;
+      filters += `
+        <OR>
+          <EQ name="SelectedSection.FromLocation.Signature" value="${location}" />
+          <EQ name="SelectedSection.ToLocation.Signature" value="${location}" />
+          <EQ name="SelectedSection.IntermediateLocation.Signature" value="${location}" />
+        </OR>
+      `;
     }
 
     // Get events from the last 24 hours using CreatedDateTime
@@ -327,6 +297,15 @@ class TrafikverketAPI {
   private buildOperativeEventQuery(location?: string): string {
     let filters = '<AND>';
     
+    if (location) {
+      filters += `
+        <OR>
+          <EQ name="EventSection.FromLocation.Signature" value="${location}" />
+          <EQ name="EventSection.ToLocation.Signature" value="${location}" />
+        </OR>
+      `;
+    }
+    
     // Get events from the last 7 days using ModifiedDateTime
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const now = new Date();
@@ -340,7 +319,7 @@ class TrafikverketAPI {
     return `
       <REQUEST>
         <LOGIN authenticationkey="${API_KEY}" />
-        <QUERY objecttype="PublicOperativeEvent" namespace="ols.open" schemaversion="1" limit="20">
+        <QUERY objecttype="OperativeEvent" namespace="ols.open" schemaversion="1" limit="20">
           <FILTER>
             ${filters}
           </FILTER>
@@ -460,26 +439,6 @@ class TrafikverketAPI {
     );
   }
 
-  async getTrainMessages(trainNumber?: string, location?: string): Promise<TrainMessage[]> {
-    try {
-      const query = this.buildTrainMessageQuery(trainNumber, location);
-      const response = await this.makeAPIRequest(query);
-      
-      const messages = response.RESPONSE?.RESULT?.[0]?.TrainMessage || [];
-      
-      return messages.map((message: any) => ({
-        AffectedLocation: message.AffectedLocation || [],
-        EventDateTime: message.EventDateTime || '',
-        Header: message.Header || '',
-        ReasonCode: message.ReasonCode,
-        TrafficImpact: message.TrafficImpact || []
-      }));
-    } catch (error) {
-      console.error('Error getting train messages:', error);
-      // Return empty array on error to prevent app crashes
-      return [];
-    }
-  }
 
   async getReplacementTraffic(trainNumber: string): Promise<ReplacementTraffic[]> {
     try {
@@ -487,7 +446,7 @@ class TrafikverketAPI {
       const query = this.buildReplacementTrafficQuery(trainNumber);
       const response = await this.makeAPIRequest(query);
       
-      const replacements = response.RESPONSE?.RESULT?.[0]?.TrainReplacementTraffic || [];
+      const replacements = response.RESPONSE?.RESULT?.[0]?.ReplacementTraffic || [];
       
       if (replacements.length > 0) {
         return replacements.map((replacement: any) => ({
@@ -516,13 +475,13 @@ class TrafikverketAPI {
       const query = `
         <REQUEST>
           <LOGIN authenticationkey="${API_KEY}" />
-          <QUERY objecttype="TrainReplacementTraffic" namespace="JBS" schemaversion="1" limit="50">
+          <QUERY objecttype="ReplacementTraffic" namespace="jbs" schemaversion="1" limit="50">
           </QUERY>
         </REQUEST>
       `;
       
       const response = await this.makeAPIRequest(query);
-      const allReplacements = response?.RESPONSE?.RESULT?.[0]?.TrainReplacementTraffic || [];
+      const allReplacements = response?.RESPONSE?.RESULT?.[0]?.ReplacementTraffic || [];
       
       // Filtrera på klientsidan istället
       const filteredReplacements = allReplacements.filter((replacement: any) => {
@@ -581,7 +540,7 @@ class TrafikverketAPI {
       const query = this.buildOperativeEventQuery(location);
       const response = await this.makeAPIRequest(query);
       
-      const events = response.RESPONSE?.RESULT?.[0]?.PublicOperativeEvent || [];
+      const events = response.RESPONSE?.RESULT?.[0]?.OperativeEvent || [];
       
       return events.map((event: any) => ({
         StartDateTime: event.StartDateTime,
